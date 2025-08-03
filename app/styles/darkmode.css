@@ -1,0 +1,36 @@
+/* style.css — Notion-inspired minimal dark UI */
+body {
+    background-color: #121212;
+    font-family: 'Segoe UI', sans-serif;
+    color: #f1f1f1;
+  }
+  
+  .block-container {
+    padding: 2rem;
+  }
+  
+  h1, h2, h3 {
+    font-weight: 600;
+    color: #fdfdfd;
+  }
+  
+  .stTextInput > div > input {
+    background-color: #1e1e1e;
+    color: #fafafa;
+    border: 1px solid #444;
+    border-radius: 6px;
+  }
+  
+  .stTextArea textarea {
+    background-color: #1e1e1e;
+    color: #fafafa;
+    border: 1px solid #444;
+    border-radius: 6px;
+  }
+  
+  button[kind="primary"] {
+    background-color: #00c49a;
+    color: #fff;
+    border-radius: 6px;
+  }
+  
