@@ -1,59 +1,83 @@
 # tracker.py
+# sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from utils.data_utils import save_entry, load_data
 import streamlit as st
 import pandas as pd
-import sys
-import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-from utils.ai_insights import get_ai_feedback
-from utils.data_utils import save_entry, load_data
-
-
 from datetime import datetime
+import calendar
+from utils.ai_insights import get_ai_feedback
 
-# --- UI Settings ---
-st.set_page_config(page_title="📚 Learning Productivity Tracker", layout="wide", initial_sidebar_state="expanded")
-with open("app/styles/darkmode.css") as f:
+# --------------- Styling -------------------
+with open("app\styles\darkmode.css") as f:
     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
-# --- Sidebar ---
-st.sidebar.title("🔧 Settings")
-mode = st.sidebar.radio("Choose view", ["Log Entry", "View Logs", "Insights"])
+# ----------- Page Config ------------------
+st.set_page_config(page_title="Learning Tracker", layout="wide", initial_sidebar_state="expanded")
 
-# --- Main ---
-st.title("📘 Developer Learning Tracker with AI Insights")
+# ----------- Session State Setup ----------
+if "learning_log" not in st.session_state:
+    st.session_state.learning_log = []
 
-if mode == "Log Entry":
-    st.subheader("✍️ Log Your Learning")
-    date = st.date_input("Date", value=datetime.now())
-    topic = st.text_input("What did you learn?")
-    duration = st.slider("How many hours?", 0.0, 8.0, 1.0, step=0.5)
-    notes = st.text_area("Any reflections, struggles, or wins?")
+# ------------- Sidebar ---------------------
+with st.sidebar:
+    st.title("📅 Calendar")
+    today = datetime.today()
+    st.markdown(f"### {calendar.month_name[today.month]} {today.year}")
+    cal = calendar.monthcalendar(today.year, today.month)
+    st.write("Mon Tue Wed Thu Fri Sat Sun")
+    for week in cal:
+        st.write(" ".join(f"{day:2}" if day != 0 else "  " for day in week))
     
-    if st.button("Save Entry"):
-        save_entry(date, topic, duration, notes)
-        st.success("✅ Entry saved!")
+    st.markdown("---")
+    st.markdown("**💡 Tip:** Stay consistent with small learning efforts daily!")
 
-elif mode == "View Logs":
-    st.subheader("📊 Your Logged Sessions")
-    df = load_data()
-    st.dataframe(df.sort_values(by="date", ascending=False))
+# ------------ Main App ---------------------
+st.title("📚 Developer Learning Productivity Tracker")
 
-elif mode == "Insights":
-    st.subheader("🤖 AI-Generated Insights")
-    df = load_data()
-    if len(df) < 3:
-        st.info("Log at least 3 sessions to get insights.")
-    else:
-        insights = get_ai_feedback(df)
-        st.markdown("### ✨ Suggestions from AI")
-        st.write(insights)
+with st.form("log_form"):
+    st.subheader("📥 Log your learning activity")
 
+    topic = st.text_input("What did you learn today?", placeholder="e.g. Python decorators")
+    duration = st.slider("How many hours?", 0.0, 10.0, step=0.5)
+    notes = st.text_area("Brief notes", placeholder="Optional summary of what you learned")
 
-# Inject Notion-style CSS
-def apply_custom_style():
-    with open("app\styles\darkmode.css") as f:
-        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+    submitted = st.form_submit_button("➕ Add Entry")
+    if submitted and topic and duration:
+        entry = {
+            "date": datetime.now().strftime("%Y-%m-%d"),
+            "topic": topic,
+            "duration": duration,
+            "notes": notes
+        }
+        st.session_state.learning_log.append(entry)
+        st.success("Learning entry added!")
 
-apply_custom_style()
+# ------------ Dataframe Display -------------
+if st.session_state.learning_log:
+    df = pd.DataFrame(st.session_state.learning_log)
+    st.subheader("📈 Your Learning Logs")
+    st.dataframe(df)
 
+    # --------- AI Feedback Section ---------
+    st.markdown("---")
+    st.subheader("🧠 AI Productivity Insight")
+    feedback = get_ai_feedback(df)
+    st.markdown(feedback)
+
+# ----------- Habit Card Component -----------
+st.markdown("---")
+st.subheader("🔁 Weekly Habit Tracker")
+
+st.markdown("""
+<div class='habit-card'>
+    <div class='habit-header'>🔥 Daily Study Habit</div>
+    <div class='habit-body'>
+        <p>✅ Aim: Learn at least 1 hour per day</p>
+        <ul>
+            <li>Track your streak</li>
+            <li>Break down big goals</li>
+            <li>Use this app every evening</li>
+        </ul>
+    </div>
+</div>
+""", unsafe_allow_html=True)
