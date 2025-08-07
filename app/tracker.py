@@ -1,10 +1,10 @@
 # tracker.py
 # sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from utils.data_utils import save_entry, load_data
 import streamlit as st
 import pandas as pd
-from datetime import datetime
 import calendar
+from datetime import datetime
+from utils.data_utils import save_entry, load_data
 from utils.ai_insights import get_ai_feedback
 
 # --------------- Styling -------------------
@@ -41,7 +41,7 @@ with st.form("log_form"):
     duration = st.slider("How many hours?", 0.0, 10.0, step=0.5)
     notes = st.text_area("Brief notes", placeholder="Optional summary of what you learned")
 
-    submitted = st.form_submit_button("➕ Add Entry")
+    submitted = st.form_submit_button("Add Entry")
     if submitted and topic and duration:
         entry = {
             "date": datetime.now().strftime("%Y-%m-%d"),
@@ -67,6 +67,16 @@ if st.session_state.learning_log:
 # ----------- Habit Card Component -----------
 st.markdown("---")
 st.subheader("🔁 Weekly Habit Tracker")
+
+habit = st.text_input("What is your next target habit", placeholder="Mantra moments")
+done = st.form_submit_button("Add habit")
+
+if done:
+    next_entry = {
+        "New habit": habit
+    }
+
+    st.session_state.learning_log.append(next_entry)
 
 st.markdown("""
 <div class='habit-card'>
